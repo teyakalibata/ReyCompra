@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Checkout - ReyCompra</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<script>
+function placeOrder(event) {
+  event.preventDefault();
+
+  const payment = document.querySelector('input[name="payment"]:checked').value;
+
+  alert(
+    "Order Successful!\n\n" +
+    "Payment Method: " + payment + "\n" +
+    "Thank you for shopping at ReyCompra ❤️"
+  );
+
+  // Hapus cart setelah checkout
+  localStorage.removeItem("cart");
+
+  // Redirect ke halaman utama
+  window.location.href = "index.html";
+}
+</script>
+
+<body>
+
+<div class="container py-5">
+  <h2 class="mb-4">Checkout</h2>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Price</th>
+        <th>Qty</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody id="checkoutItems"></tbody>
+  </table>
+
+  <h4 class="text-end">
+    Grand Total: Rp <span id="checkoutTotal">0</span>
+  </h4>
+
+  <hr>
+
+  <h4>Customer Information</h4>
+<form onsubmit="placeOrder(event)">
+
+  <div class="mb-3">
+    <label>Name</label>
+    <input type="text" class="form-control" required>
+  </div>
+
+  <div class="mb-3">
+    <label>Email</label>
+    <input type="email" class="form-control" required>
+  </div>
+
+  <div class="mb-3">
+    <label>Address</label>
+    <textarea class="form-control" required></textarea>
+  </div>
+
+  <hr>
+
+  <h4>Payment Method</h4>
+
+  <div class="form-check">
+    <input class="form-check-input" type="radio" name="payment" value="Bank Transfer" required>
+    <label class="form-check-label">
+      Bank Transfer (BCA / BRI / Mandiri)
+    </label>
+  </div>
+
+  <div class="form-check">
+    <input class="form-check-input" type="radio" name="payment" value="E-Wallet">
+    <label class="form-check-label">
+      E-Wallet (OVO / DANA / GoPay)
+    </label>
+  </div>
+
+  <div class="form-check mb-4">
+    <input class="form-check-input" type="radio" name="payment" value="COD">
+    <label class="form-check-label">
+      Cash On Delivery (COD)
+    </label>
+  </div>
+
+  <button class="btn btn-success w-100">
+    Place Order
+  </button>
+</form>
+
+</div>
+
+<script>
+const cart = JSON.parse(localStorage.getItem("cart")) || [];
+const tbody = document.getElementById("checkoutItems");
+const totalEl = document.getElementById("checkoutTotal");
+
+let total = 0;
+
+cart.forEach(item => {
+  let itemTotal = item.price * item.qty;
+  total += itemTotal;
+
+  tbody.innerHTML += `
+    <tr>
+      <td>${item.name}</td>
+      <td>Rp ${item.price.toLocaleString()}</td>
+      <td>${item.qty}</td>
+      <td>Rp ${itemTotal.toLocaleString()}</td>
+    </tr>
+  `;
+});
+
+totalEl.innerText = total.toLocaleString();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>ReyCompra</title>
+        
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        
+        <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
+        
+        <link href="css/styles.css" rel="stylesheet" />
+    </head>
+
+<script>
+let cart = [];
+
+function addToCart(name, price) {
+  let item = cart.find(i => i.name === name);
+
+  if (item) {
+    item.qty++;
+  } else {
+    cart.push({ name, price, qty: 1 });
+  }
+
+  saveCart();
+  renderCart();
+  new bootstrap.Modal(document.getElementById('cartModal')).show();
+}
+
+function updateQty(name, qty) {
+  let item = cart.find(i => i.name === name);
+  if (!item) return;
+
+  if (qty <= 0) {
+    removeItem(name);
+  } else {
+    item.qty = qty;
+  }
+
+  saveCart();
+  renderCart();
+}
+
+function removeItem(name) {
+  cart = cart.filter(i => i.name !== name);
+  saveCart();
+  renderCart();
+}
+
+function renderCart() {
+  const cartItems = document.getElementById("cartItems");
+  const cartTotal = document.getElementById("cartTotal");
+  const cartCount = document.getElementById("cartCount");
+
+  cartItems.innerHTML = "";
+  let total = 0;
+  let count = 0;
+
+  cart.forEach(item => {
+    let itemTotal = item.price * item.qty;
+    total += itemTotal;
+    count += item.qty;
+
+    cartItems.innerHTML += `
+      <tr>
+        <td>${item.name}</td>
+        <td>Rp ${item.price.toLocaleString()}</td>
+        <td>
+          <div class="input-group input-group-sm">
+            <button class="btn btn-outline-secondary"
+              onclick="updateQty('${item.name}', ${item.qty - 1})">-</button>
+            <input type="text" class="form-control text-center" value="${item.qty}" readonly>
+            <button class="btn btn-outline-secondary"
+              onclick="updateQty('${item.name}', ${item.qty + 1})">+</button>
+          </div>
+        </td>
+        <td>Rp ${itemTotal.toLocaleString()}</td>
+        <td>
+          <button class="btn btn-sm btn-danger"
+            onclick="removeItem('${item.name}')">
+            ✕
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+
+  if (cart.length === 0) {
+    cartItems.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-muted">
+          Cart is empty
+        </td>
+      </tr>
+    `;
+  }
+
+  cartTotal.innerText = total.toLocaleString();
+  cartCount.innerText = count;
+}
+
+function saveCart() {
+  localStorage.setItem("cart", JSON.stringify(cart));
+}
+
+function loadCart() {
+  cart = JSON.parse(localStorage.getItem("cart")) || [];
+  renderCart();
+}
+
+document.addEventListener("DOMContentLoaded", loadCart);
+</script>
+
+<script>
+function register() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  if (!username || !password) {
+    alert("Username & Password wajib diisi");
+    return;
+  }
+
+  localStorage.setItem("user", JSON.stringify({ username, password }));
+  alert("Register berhasil! Silakan login.");
+}
+
+function login() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!user || user.username !== username || user.password !== password) {
+    alert("Login gagal!");
+    return;
+  }
+
+  localStorage.setItem("loggedIn", "true");
+  localStorage.setItem("activeUser", username);
+  bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
+  updateNavbar();
+}
+
+function logout() {
+  localStorage.removeItem("loggedIn");
+  localStorage.removeItem("activeUser");
+  updateNavbar();
+}
+
+function updateNavbar() {
+  const loggedIn = localStorage.getItem("loggedIn");
+  const userName = localStorage.getItem("activeUser");
+
+  if (loggedIn) {
+    document.getElementById("loginNav").classList.add("d-none");
+    document.getElementById("userNav").classList.remove("d-none");
+    document.getElementById("logoutNav").classList.remove("d-none");
+    document.getElementById("userName").innerText = userName;
+  } else {
+    document.getElementById("loginNav").classList.remove("d-none");
+    document.getElementById("userNav").classList.add("d-none");
+    document.getElementById("logoutNav").classList.add("d-none");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", updateNavbar);
+</script>
+
+
+
+    <body id="page-top">
+
+         <!-- CART MODAL -->
+<div class="modal fade" id="cartModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">🛒 Shopping Cart</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Price</th>
+              <th width="150">Qty</th>
+              <th>Total</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="cartItems">
+            <tr>
+              <td colspan="5" class="text-center text-muted">
+                Cart is empty
+              </td>
+            </tr>
+            <!-- LOGIN MODAL -->
+<div class="modal fade" id="loginModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Login Account</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <input type="text" id="username" class="form-control mb-2" placeholder="Username">
+        <input type="password" id="password" class="form-control mb-3" placeholder="Password">
+
+        <button class="btn btn-primary w-100" onclick="login()">Login</button>
+
+        <hr>
+        <p class="text-center text-muted mb-1">Belum punya akun?</p>
+        <button class="btn btn-outline-secondary w-100" onclick="register()">Register</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="loginModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Login</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <input type="text" id="loginUsername" class="form-control mb-2" placeholder="Username">
+        <input type="password" id="loginPassword" class="form-control" placeholder="Password">
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="login()">Login</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+          </tbody>
+        </table>
+
+        <h5 class="text-end">
+          Grand Total: Rp <span id="cartTotal">0</span>
+        </h5>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">
+          Continue Shopping
+        </button>
+        <a href="checkout.html" class="btn btn-primary">
+          Checkout
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+        <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
+  <div class="container">
+
+    <a class="navbar-brand" href="#page-top">ReyCompra</a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+      data-bs-target="#navbarResponsive">
+      Menu <i class="fas fa-bars ms-1"></i>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarResponsive">
+      <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+
+    <li class="nav-item">
+        <a class="nav-link" href="#services">Home</a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link" href="#portfolio">Products</a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link" href="#about">History</a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link" href="#team">Team</a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link" href="#contact us">Contact us</a>
+    </li>
+
+    <!-- LOGIN -->
+    <li class="nav-item" id="loginNav">
+        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">
+            <i class="fas fa-user"></i> Login
+        </a>
+    </li>
+
+    <!-- USER INFO -->
+    <li class="nav-item d-none" id="userNav">
+        <a class="nav-link" href="#">
+            Hi, <span id="userName"></span>
+        </a>
+    </li>
+
+    <!-- LOGOUT -->
+    <li class="nav-item d-none" id="logoutNav">
+        <a class="nav-link text-danger" href="#" onclick="logout()">Logout</a>
+    </li>
+
+    <!-- CART -->
+    <li class="nav-item">
+        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#cartModal">
+            <i class="fas fa-shopping-cart"></i>
+            <span id="cartCount">0</span>
+        </a>
+    </li>
+
+</ul>
+
+    </div>
+
+  </div>
+</nav>
+
+        <!-- Masthead-->
+        <header class="masthead">
+            <div class="container">
+                <div class="masthead-subheading">Welcome To Our E-Commerence!</div>
+                <div class="masthead-heading text-uppercase">Hola,Como Estas? </div>
+                <a class="btn btn-primary btn-xl text-uppercase" href="#services">Tell me more</a>
+            </div>
+        </header>
+        <!-- Services-->
+        <section class="page-section" id="services">
+            <div class="container">
+                <div class="text-center">
+                    <h2 class="section-heading text-uppercase">ReyCompra</h2>
+                    <h3 class="section-subheading text-muted">“Everything You Love, One Click Away.”.</h3>
+                </div>
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <span class="fa-stack fa-4x">
+                            <i class="fas fa-circle fa-stack-2x text-primary"></i>
+                            <i class="fas fa-shopping-cart fa-stack-1x fa-inverse"></i>
+                        </span>
+                        <h4 class="my-3">   <p>Product Categories</p></h4>
+                        <p class="text-muted">product categories are neatly and clearly organized.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="fa-stack fa-4x">
+                            <i class="fas fa-circle fa-stack-2x text-primary"></i>
+                            <i class="fas fa-laptop fa-stack-1x fa-inverse"></i>
+                        </span>
+                        <h4 class="my-3">Promo and Discount</h4>
+                        <p class="text-muted">there are always exciting promotions and delicious discounts.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="fa-stack fa-4x">
+                            <i class="fas fa-circle fa-stack-2x text-primary"></i>
+                            <i class="fas fa-lock fa-stack-1x fa-inverse"></i>
+                        </span>
+                        <h4 class="my-3">Hidden Multiple Payment</h4>
+                        <p class="text-muted">No cash? no problem, there's many payment methods.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Portfolio Grid-->
+         
+        <section class="page-section bg-light" id="portfolio">
+            <div class="container">
+                <div class="text-center">
+                    <h2 class="section-heading text-uppercase">Products</h2>
+                    <h3 class="section-subheading text-muted">Come get some stuff.</h3>
+                </div>
+                <div class="row">
+                    <div class="col-lg-4 col-sm-6 mb-4">
+                        <!-- Portfolio item 1-->
+                        <div class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal1">
+                                <div class="portfolio-hover">
+                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
+                                </div>
+                                <img class="img-fluid" src="assets/img/Products/t-shirt.png" alt="..." />
+                            </a>
+                            <div class="portfolio-caption">
+                                <div class="portfolio-caption-heading">T-shirt</div>
+                                <div class="portfolio-caption-subheading text-muted">Fresh T-shirt for a new day</div>
+                            </div>
+                            <button 
+                                  class="btn btn-sm btn-primary mt-2"
+                                     onclick="addToCart('T-shirt', 120000)">
+                                           Add to Cart
+                                                 </button>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6 mb-4">
+                        <!-- Portfolio item 2-->
+                        <div class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal2">
+                                <div class="portfolio-hover">
+                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
+                                </div>
+                                <img class="img-fluid" src="assets/img/Products/2.jpg" alt="..." />
+                            </a>
+                            <div class="portfolio-caption">
+                                <div class="portfolio-caption-heading">Shoes</div>
+                                <div class="portfolio-caption-subheading text-muted">Grab ur new shoe</div>
+                            </div>
+                            <button 
+                                class="btn btn-sm btn-primary mt-2"
+                                    onclick="addToCart('Shoes', 120000)">
+                                    Add to Cart
+                                        </button>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6 mb-4">
+                        <!-- Portfolio item 3-->
+                        <div class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal3">
+                                <div class="portfolio-hover">
+                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
+                                </div>
+                                <img class="img-fluid" src="assets/img/Products/Jacket.png" alt="..." />
+                            </a>
+                            <div class="portfolio-caption">
+                                <div class="portfolio-caption-heading">Jacket</div>
+                                <div class="portfolio-caption-subheading text-muted">Wrap ur jacket it's cold out there</div>
+                            </div>
+                            <button 
+                                class="btn btn-sm btn-primary mt-2"
+                                onclick="addToCart('Jacket', 120000)">
+                                    Add to Cart
+                                        </button>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6 mb-4 mb-lg-0">
+                        <!-- Portfolio item 4-->
+                        <div class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal4">
+                                <div class="portfolio-hover">
+                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
+                                </div>
+                                <img class="img-fluid" src="assets/img/Products/pants.png" alt="" />
+                            </a>
+                            <div class="portfolio-caption">
+                                <div class="portfolio-caption-heading">Pants</div>
+                                <div class="portfolio-caption-subheading text-muted">Come here to see a new branded pants</div>
+                            </div>
+                            <button 
+                                class="btn btn-sm btn-primary mt-2"
+                                onclick="addToCart('Pants', 120000)">
+                                    Add to Cart
+                                        </button>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6 mb-4 mb-sm-0">
+                        <!-- Portfolio item 5-->
+                        <div class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal5">
+                                <div class="portfolio-hover">
+                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
+                                </div>
+                                <img class="img-fluid" src="assets/img/Products/aksesoris.png" alt="..." />
+                            </a>
+                            <div class="portfolio-caption">
+                                <div class="portfolio-caption-heading">Accessories</div>
+                                <div class="portfolio-caption-subheading text-muted">This one can make u cools</div>
+                            </div>
+                            <button 
+                                class="btn btn-sm btn-primary mt-2"
+                                onclick="addToCart('Accessories', 120000)">
+                                    Add to Cart
+                                        </button>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6">
+                        <!-- Portfolio item 6-->
+                        <div class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal6">
+                                <div class="portfolio-hover">
+                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
+                                </div>
+                                <img class="img-fluid" src="assets/img/Products/images-removebg-preview.png" alt="..." />
+                            </a>
+                            <div class="portfolio-caption">
+                                <div class="portfolio-caption-heading">Make up</div>
+                                <div class="portfolio-caption-subheading text-muted">be happy girls this is ur stuff</div>
+                            </div>
+                            <button 
+                                class="btn btn-sm btn-primary mt-2"
+                                onclick="addToCart('Make up', 120000)">
+                                    Add to Cart
+                                        </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- About-->
+        <section class="page-section" id="about">
+            <div class="container">
+                <div class="text-center">
+                    <h2 class="section-heading text-uppercase">History</h2>
+                    <h3 class="section-subheading text-muted">Reycompra is an e-commerce site with a catchy Spanish-style vibe. Reycompra was founded in the city of Barcelona, Spain, and has a unique vision and mission for the younger generation.</h3>
+                </div>
+                <ul class="timeline">
+                    <li>
+                        <div class="timeline-image"><img class="rounded-circle img-fluid" src="assets/img/about/1.jpg" alt="..." /></div>
+                        <div class="timeline-panel">
+                            <div class="timeline-heading">
+                                <h4>2009-2011</h4>
+                                <h4 class="subheading">Our Humble Beginnings</h4>
+                            </div>
+                            <div class="timeline-body"><p class="text-muted">a bold idea from young people to change the views of the younger generation!</p></div>
+                        </div>
+                    </li>
+                    <li class="timeline-inverted">
+                        <div class="timeline-image"><img class="rounded-circle img-fluid" src="assets/img/about/2.jpg" alt="..." /></div>
+                        <div class="timeline-panel">
+                            <div class="timeline-heading">
+                                <h4>March 2011</h4>
+                                <h4 class="subheading">An Agency is Born</h4>
+                            </div>
+                            <div class="timeline-body"><p class="text-muted">our agency has been born, but has some problems....</p></div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="timeline-image"><img class="rounded-circle img-fluid" src="assets/img/about/3.jpg" alt="..." /></div>
+                        <div class="timeline-panel">
+                            <div class="timeline-heading">
+                                <h4>December 2015</h4>
+                                <h4 class="subheading">Comeback Stronger</h4>
+                            </div>
+                            <div class="timeline-body"><p class="text-muted">we are born again to continue our dreams!</p></div>
+                        </div>
+                    </li>
+                    <li class="timeline-inverted">
+                        <div class="timeline-image"><img class="rounded-circle img-fluid" src="assets/img/about/4.jpg" alt="..." /></div>
+                        <div class="timeline-panel">
+                            <div class="timeline-heading">
+                                <h4>July 2020</h4>
+                                <h4 class="subheading">Phase Two Expansion</h4>
+                            </div>
+                            <div class="timeline-body"><p class="text-muted">a final step to make our dreams come true!</p></div>
+                        </div>
+                    </li>
+                    <li class="timeline-inverted">
+                        <div class="timeline-image">
+                            <h4>
+                                Be Part
+                                <br />
+                                Of Our
+                                <br />
+                                Story!
+                            </h4>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+        <!-- Team-->
+        <section class="page-section bg-light" id="team">
+            <div class="container">
+                <div class="text-center">
+                    <h2 class="section-heading text-uppercase">Our Amazing Team</h2>
+                    <h3 class="section-subheading text-muted">Come to see our amazing personel.</h3>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-lg-4 text-center">
+                        <div class="team-member">
+                            <img class="mx-auto rounded-circle" src="assets/img/team/WhatsApp Image 2025-07-17 at 18.55.45_188161f7.jpg" alt="..." />
+                            <h4>Fathur Rizki</h4>
+                            <p class="text-muted">Founder</p>
+                            <a class="btn btn-dark btn-social mx-2" href="#!" aria-label="Parveen Anand Twitter Profile"><i class="fab fa-twitter"></i></a>
+                            <a class="btn btn-dark btn-social mx-2" href="#!" aria-label="Parveen Anand Facebook Profile"><i class="fab fa-facebook-f"></i></a>
+                            <a class="btn btn-dark btn-social mx-2" href="#!" aria-label="Parveen Anand LinkedIn Profile"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                     <div class="team-member">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-8 mx-auto text-center"><p class="large text-muted">Our Greatest Founder.</p></div>
+                </div>
+            </div>
+        </section>
+        <!-- Clients-->
+        <div class="py-5">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-3 col-sm-6 my-3">
+                        <a href="#!"><img class="img-fluid img-brand d-block mx-auto" src="assets/img/logos/microsoft.svg" alt="..." aria-label="Microsoft Logo" /></a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 my-3">
+                        <a href="#!"><img class="img-fluid img-brand d-block mx-auto" src="assets/img/logos/google.svg" alt="..." aria-label="Google Logo" /></a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 my-3">
+                        <a href="#!"><img class="img-fluid img-brand d-block mx-auto" src="assets/img/logos/facebook.svg" alt="..." aria-label="Facebook Logo" /></a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 my-3">
+                        <a href="#!"><img class="img-fluid img-brand d-block mx-auto" src="assets/img/logos/ibm.svg" alt="..." aria-label="IBM Logo" /></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Contact-->
+        <section class="page-section" id="contact">
+            <div class="container">
+                <div class="text-center">
+                    <h2 class="section-heading text-uppercase">Contact Us</h2>
+                    <h3 class="section-subheading text-muted">Fell free to contact us.</h3>
+                </div>
+                
+                <form id="contactForm" data-sb-form-api-token="API_TOKEN">
+                    <div class="row align-items-stretch mb-5">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <!-- Name input-->
+                                <input class="form-control" id="name" type="text" placeholder="Your Name *" data-sb-validations="required" />
+                                <div class="invalid-feedback" data-sb-feedback="name:required">A name is required.</div>
+                            </div>
+                            <div class="form-group">
+                                <!-- Email address input-->
+                                <input class="form-control" id="email" type="email" placeholder="Your Email *" data-sb-validations="required,email" />
+                                <div class="invalid-feedback" data-sb-feedback="email:required">An email is required.</div>
+                                <div class="invalid-feedback" data-sb-feedback="email:email">Email is not valid.</div>
+                            </div>
+                            <div class="form-group mb-md-0">
+                                <!-- Phone number input-->
+                                <input class="form-control" id="phone" type="tel" placeholder="Your Phone *" data-sb-validations="required" />
+                                <div class="invalid-feedback" data-sb-feedback="phone:required">A phone number is required.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group form-group-textarea mb-md-0">
+                                <!-- Message input-->
+                                <textarea class="form-control" id="message" placeholder="Your Message *" data-sb-validations="required"></textarea>
+                                <div class="invalid-feedback" data-sb-feedback="message:required">A message is required.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-none" id="submitSuccessMessage">
+                        <div class="text-center text-white mb-3">
+                            <div class="fw-bolder">Form submission successful!</div>
+                            To activate this form, sign up at
+                            <br />
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="d-none" id="submitErrorMessage"><div class="text-center text-danger mb-3">Error sending message!</div></div>
+                    
+                    <div class="text-center"><button class="btn btn-primary btn-xl text-uppercase disabled" id="submitButton" type="submit">Send Message</button></div>
+                </form>
+            </div>
+        </section>
+        
+        <footer class="footer py-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-4 text-lg-start">Copyright &copy; Your Website 2023</div>
+                    <div class="col-lg-4 my-3 my-lg-0">
+                        <a class="btn btn-dark btn-social mx-2" href="#!" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a class="btn btn-dark btn-social mx-2" href="#!" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a class="btn btn-dark btn-social mx-2" href="#!" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <a class="link-dark text-decoration-none me-3" href="#!">Privacy Policy</a>
+                        <a class="link-dark text-decoration-none" href="#!">Terms of Use</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        
+       
+        
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+        <script src="js/scripts.js"></script>
+        
+        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+
+    </body>
+</html>
